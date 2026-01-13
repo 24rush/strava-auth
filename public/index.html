@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Strava Login & Activity</title>
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      margin-top: 50px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 5px;
+      cursor: pointer;
+      background-color: #fc4c02;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+
+    button:hover {
+      background-color: #e04300;
+    }
+
+    input {
+      padding: 8px;
+      font-size: 16px;
+      width: 200px;
+    }
+
+    #activityOutput {
+      margin-top: 20px;
+      text-align: left;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+      white-space: pre-wrap;
+      background: #f4f4f4;
+      padding: 10px;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>Strava Login</h1>
+
+  <!-- Login buttons for multiple websites -->
+  <button onclick="window.location.href='/api/login?site=sweatstory'">Login sweatstory</button>
+
+  <hr>
+
+  <!-- Logout -->
+  <button onclick="logout()">Logout</button>
+
+  <hr>
+
+  <!-- Fetch activity -->
+  <h2>Fetch Activity by ID</h2>
+  <input type="text" id="activityId" placeholder="Enter activity ID" />
+  <button onclick="getActivity()">Get Activity</button>
+
+  <pre id="activityOutput"></pre>
+
+  <script>
+    // Logout
+    async function logout() {
+      const res = await fetch('/api/logout', { method: 'POST', credentials: 'include' });
+      const data = await res.json();
+      alert(data.message);
+      window.location.reload();
+    }
+
+    async function getActivity() {
+      const id = document.getElementById('activityId').value.trim();
+      if (!id) return alert('Please enter an activity ID');
+
+      try {
+        const res = await fetch(`/api/activity/${id}`, { credentials: 'include' });
+        let data;
+
+        const text = await res.text(); // read body once
+
+        try {
+          data = JSON.parse(text); // try parse JSON
+        } catch {
+          // fallback if response is HTML or text
+          document.getElementById('activityOutput').textContent = `Non-JSON response: ${text}`;
+          return;
+        }
+
+        if (res.ok) {
+          document.getElementById('activityOutput').textContent = JSON.stringify(data, null, 2);
+        } else {
+          document.getElementById('activityOutput').textContent = `Error: ${data.error || JSON.stringify(data)}`;
+        }
+
+      } catch (err) {
+        document.getElementById('activityOutput').textContent = `Fetch error: ${err}`;
+      }
+    }
+
+
+  </script>
+
+</body>
+
+</html>

@@ -17,7 +17,7 @@ export const client = new MongoClient(uri, options);
 // See https://vercel.com/blog/the-real-serverless-compute-to-database-connection-problem-solved
 attachDatabasePool(client);
 
-// Get the database instance for Better Auth
+// Get the database instance for Strava Auth
 export async function getDatabase(dbName?: string) {
   return client.db(dbName || process.env.MONGODB_DB);
 }
