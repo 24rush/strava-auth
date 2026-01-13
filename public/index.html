@@ -43,6 +43,10 @@
       padding: 10px;
       border-radius: 5px;
     }
+
+    .hidden {
+      display: none;
+    }
   </style>
 </head>
 
@@ -50,22 +54,28 @@
 
   <h1>Strava Login</h1>
 
-  <!-- Login buttons for multiple websites -->
-  <button onclick="window.location.href='/api/login?site=sweatstory'">Login sweatstory</button>
+  <!-- AUTH SECTION -->
+  <div id="auth">
+    <button id="loginBtn" onclick="window.location.href='/api/login?site=sweatstory'">Login with Strava</button>
+    <div id="userInfo" class="hidden">
+      <p id="userName"></p>
+      <button onclick="logout()">Logout</button>
+    </div>
+  </div>
 
-  <hr>
+  <hr />
 
-  <!-- Logout -->
-  <button onclick="logout()">Logout</button>
-
-  <hr>
-
-  <!-- Fetch activity -->
-  <h2>Fetch Activity by ID</h2>
-  <input type="text" id="activityId" placeholder="Enter activity ID" />
-  <button onclick="getActivity()">Get Activity</button>
-
-  <pre id="activityOutput"></pre>
+  <!-- ACTIVITY SECTION -->
+  <div id="activitySection" class="hidden">
+    <h3>Get Activity</h3>
+    <input
+      id="activityId"
+      type="text"
+      placeholder="Enter activity ID"
+    />
+    <button onclick="getActivity()">Fetch Activity</button>
+    <pre id="activityOutput"></pre>
+  </div>
 
   <script>
     // Logout
@@ -81,30 +91,69 @@
       if (!id) return alert('Please enter an activity ID');
 
       try {
-        const res = await fetch(`/api/activity/${id}`, { credentials: 'include' });
+        const res = await fetch(
+          `/api/activity?id=${encodeURIComponent(id)}`,
+          { credentials: 'include' }
+        );
+
+        const text = await res.text();
+
         let data;
-
-        const text = await res.text(); // read body once
-
         try {
-          data = JSON.parse(text); // try parse JSON
+          data = JSON.parse(text);
         } catch {
-          // fallback if response is HTML or text
-          document.getElementById('activityOutput').textContent = `Non-JSON response: ${text}`;
+          document.getElementById('activityOutput').textContent =
+            `Non-JSON response:\n${text}`;
           return;
         }
 
         if (res.ok) {
-          document.getElementById('activityOutput').textContent = JSON.stringify(data, null, 2);
+          document.getElementById('activityOutput').textContent =
+            JSON.stringify(data, null, 2);
         } else {
-          document.getElementById('activityOutput').textContent = `Error: ${data.error || JSON.stringify(data)}`;
+          document.getElementById('activityOutput').textContent =
+            `Error:\n${JSON.stringify(data, null, 2)}`;
         }
-
       } catch (err) {
-        document.getElementById('activityOutput').textContent = `Fetch error: ${err}`;
+        document.getElementById('activityOutput').textContent =
+          `Fetch error: ${err}`;
       }
     }
 
+    async function checkAuth() {
+      try {
+        const res = await fetch('/api/me', {
+          credentials: 'include'
+        });
+
+        if (!res.ok) {
+          showLoggedOut();
+          return;
+        }
+
+        const data = await res.json();
+        const athlete = data.user;
+
+        document.getElementById('userName').textContent =
+          `Logged in as ${athlete.firstname} ${athlete.lastname}`;
+
+        document.getElementById('loginBtn').classList.add('hidden');
+        document.getElementById('userInfo').classList.remove('hidden');
+        document.getElementById('activitySection').classList.remove('hidden');
+
+      } catch (err) {
+        console.error('Auth check failed', err);
+        showLoggedOut();
+      }
+    }
+
+    function showLoggedOut() {
+      document.getElementById('loginBtn').classList.remove('hidden');
+      document.getElementById('userInfo').classList.add('hidden');
+      document.getElementById('activitySection').classList.add('hidden');
+    }
+
+    checkAuth();
 
   </script>
 
