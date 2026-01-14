@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { setCors } from "../utils/cors";
+import { UrlType, getUrl } from "../utils/urlswitcher";
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
     setCors(res);
@@ -15,8 +16,8 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     const app = apps[site as string];
 
     if (!app) return res.status(400).send("Invalid site");
-
-    const redirectUri = `${process.env.AUTH_URL}/api/callback?site=${site}`;
+    
+    const redirectUri = `${getUrl(UrlType.Auth)}/api/callback?site=${site}`;
     const stravaAuthUrl = `https://www.strava.com/oauth/authorize?client_id=${app.clientId}&response_type=code&redirect_uri=${redirectUri}&scope=read,activity:read&approval_prompt=auto`;
 
     res.redirect(stravaAuthUrl);

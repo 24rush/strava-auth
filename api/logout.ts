@@ -23,7 +23,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         // Clear cookie
         const cookie = serialize("token", "", {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
+            secure: !process.env.VERCEL_URL?.includes("localhost"),
             sameSite: "lax",
             path: "/",
             maxAge: 0

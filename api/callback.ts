@@ -2,6 +2,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { serialize } from "cookie";
 import jwt from "jsonwebtoken";
 import { getDatabase } from "../utils/mongodb";
+import { UrlType, getUrlTest } from "../utils/urlswitcher";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     const code = req.query.code as string;
@@ -51,12 +52,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         "Set-Cookie",
         serialize("token", token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
+            secure: !process.env.VERCEL_URL?.includes("localhost"),
             sameSite: "lax",
             path: "/",
             maxAge: 7 * 24 * 60 * 60
         })
     );
 
-    res.redirect(app['frontend'] ?? '/'); // back to your frontend
+    let isProd = !process.env.VERCEL_URL?.includes("localhost");
+    
+    res.redirect(isProd ? (app['frontend'] ?? '/') : getUrlTest(UrlType.Frontend));
 }
