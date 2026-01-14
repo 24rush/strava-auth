@@ -58,5 +58,5 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         })
     );
 
-    res.redirect("/"); // back to your frontend
+    res.redirect(app['frontend'] ?? '/'); // back to your frontend
 }

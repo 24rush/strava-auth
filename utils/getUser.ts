@@ -5,9 +5,9 @@ export async function getUserFromRequest(req: { cookies?: Record<string, string>
     const token = req.cookies?.token;
     if (!token) throw new Error("Not authenticated");
 
-    let decoded: { sub: string };
+    let decoded: { sub: string, exp: number };
     try {
-        decoded = jwt.verify(token, process.env.JWT_SECRET!) as { sub: string };
+        decoded = jwt.verify(token, process.env.JWT_SECRET!) as { sub: string, exp: number };
     } catch {
         throw new Error("Invalid or expired JWT");
     }
@@ -53,5 +53,7 @@ export async function getUserFromRequest(req: { cookies?: Record<string, string>
         accessToken = refreshData.access_token;
     }
 
-    return { user, accessToken };
+    let expiresAt = decoded.exp;
+
+    return { user, accessToken, expiresAt };
 }
