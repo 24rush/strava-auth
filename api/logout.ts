@@ -24,7 +24,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const cookie = serialize("token", "", {
             httpOnly: true,
             secure: !process.env.VERCEL_URL?.includes("localhost"),
-            sameSite: "lax",
+            sameSite: "none",
             path: "/",
             maxAge: 0
         });

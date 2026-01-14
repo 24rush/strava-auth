@@ -53,13 +53,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         serialize("token", token, {
             httpOnly: true,
             secure: !process.env.VERCEL_URL?.includes("localhost"),
-            sameSite: "lax",
+            sameSite: "none",
             path: "/",
             maxAge: 7 * 24 * 60 * 60
         })
     );
 
     let isProd = !process.env.VERCEL_URL?.includes("localhost");
-    
+
     res.redirect(isProd ? (app['frontend'] ?? '/') : getUrlTest(UrlType.Frontend));
 }
