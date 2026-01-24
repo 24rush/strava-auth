@@ -31,17 +31,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   strava_url = strava_url as string;
 
   if (isAppLinkUrl(strava_url)) {
-    const response = await fetch(strava_url, { redirect: 'follow', method: 'HEAD' });
-    if (response.url) strava_url = response.url; // final URL after redirect
+    const response = await fetch(strava_url, {
+      redirect: 'follow', method: 'HEAD', headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) ' +
+          'AppleWebKit/537.36 (KHTML, like Gecko) ' +
+          'Chrome/120.0.0.0 Safari/537.36'
+      }
+    });
+
+    if (response.url) {
+      const index = response.url.indexOf('?');
+
+      if (index !== -1)
+        strava_url = response.url.substring(0, index);
+      else
+        strava_url = response.url;
+    }
   }
 
   let activityId = getActivityIdFromUrl(strava_url);
   if (!activityId) return res.status(400).json({ error: 'Invalid activity URL' });
 
   try {
-    console.log('pre')
     const { accessToken } = await getUserFromRequest(req);
-    console.log('af')
+
     const stravaRes = await fetch(
       `https://www.strava.com/api/v3/activities/${activityId}`,
       {
@@ -76,7 +90,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     );
 
     let streams;
-    if (streamRes.ok) 
+    if (streamRes.ok)
       streams = await streamRes.json();
 
     res.status(200).json({ ...activity, streams });
