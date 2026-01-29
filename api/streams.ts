@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { getUserFromRequest } from "../utils/getUser";
 
-const STREAM_KEYS = "latlng,altitude";
+const STREAM_KEYS = "distance,latlng,altitude,heartrate,time";
 
 export default async function handler(
   req: VercelRequest,

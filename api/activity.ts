@@ -4,6 +4,7 @@ import { setCors } from "../utils/cors";
 
 const appLinkRe = /^(https:\/\/)*strava\.app\.link\/[A-Za-z0-9]+$/;
 const regex = /^https?:\/\/(www\.)?strava\.com\/activities\/(\d+)(\/.*)?$/;
+const STREAM_KEYS = "distance,latlng,altitude,heartrate,time";
 
 function isAppLinkUrl(url: string) {
   return url.match(appLinkRe) != null;
@@ -67,7 +68,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const text = await stravaRes.text();
 
-    // Strava sometimes returns non-JSON errors
     let activity;
     try {
       activity = JSON.parse(text);
@@ -83,7 +83,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const streamRes = await fetch(
-      `https://www.strava.com/api/v3/activities/${activityId}/streams?keys=distance,latlng,altitude,heartrate&key_by_type=true`,
+      `https://www.strava.com/api/v3/activities/${activityId}/streams?keys=${STREAM_KEYS}&key_by_type=true`,
       {
         headers: { Authorization: `Bearer ${accessToken}` }
       }
