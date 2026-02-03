@@ -4,7 +4,7 @@ import { setCors } from "../utils/cors";
 
 const appLinkRe = /^(https:\/\/)*strava\.app\.link\/[A-Za-z0-9]+$/;
 const regex = /^https?:\/\/(www\.)?strava\.com\/activities\/(\d+)(\/.*)?$/;
-const STREAM_KEYS = "distance,latlng,altitude,heartrate,time";
+const STREAM_KEYS = "distance,latlng,altitude,heartrate,time,watts";
 
 function isAppLinkUrl(url: string) {
   return url.match(appLinkRe) != null;

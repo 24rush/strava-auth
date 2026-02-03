@@ -2,7 +2,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { getUserFromRequest } from "../utils/getUser";
 import { setCors } from "../utils/cors";
 
-const STREAM_KEYS = "distance,latlng,altitude,heartrate,time";
+const STREAM_KEYS = "distance,latlng,altitude,heartrate,time,watts";
 
 export default async function handler(
     req: VercelRequest,
@@ -22,7 +22,7 @@ export default async function handler(
     try {
         const { accessToken } = await getUserFromRequest(req);
 
-        const stravaRes = await fetch(
+        let stravaRes = await fetch(
             `https://www.strava.com/api/v3/athlete/activities?per_page=1`,
             {
                 headers: {
@@ -31,13 +31,13 @@ export default async function handler(
             }
         );
 
-        const text = await stravaRes.text();
+        let text = await stravaRes.text();
 
-        let activity;
+        let lastActivity;
         try {
-            activity = JSON.parse(text);
-            if (activity && activity.length > 0)
-                activity = activity[0];
+            lastActivity = JSON.parse(text);
+            if (lastActivity && lastActivity.length > 0)
+                lastActivity = lastActivity[0];
             else
                 throw "Invalid response from Strava";
         } catch {
@@ -48,7 +48,33 @@ export default async function handler(
         }
 
         if (!stravaRes.ok) {
-            return res.status(stravaRes.status).json(activity);
+            return res.status(stravaRes.status).json(lastActivity);
+        }
+
+        stravaRes = await fetch(
+            `https://www.strava.com/api/v3/activities/${lastActivity.id}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`
+                }
+            }
+        );
+
+        text = await stravaRes.text();
+        
+        let activity;
+
+        try {
+          activity = JSON.parse(text);
+        } catch {
+          return res.status(500).json({
+            error: "Invalid response from Strava",
+            raw: text
+          });
+        }
+    
+        if (!stravaRes.ok) {
+          return res.status(stravaRes.status).json(activity);
         }
 
         const streamRes = await fetch(
